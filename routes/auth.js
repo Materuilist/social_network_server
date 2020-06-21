@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const {createToken} = require('../utils/token');
+const { createToken, getCurrentUser } = require("../utils/token");
 
 const User = require("../models/user");
 const { encrypt, passwordsMatch } = require("../utils/password");
@@ -8,7 +8,7 @@ const exists = require("../utils/exists");
 //регистрация
 router.post("/signup", async (req, res, next) => {
   const { login, password } = req.body;
-  const user = await User.findOne({ login });
+  let user = await User.findOne({ login });
   if (exists(user)) {
     return next({
       status: 403,
@@ -16,8 +16,11 @@ router.post("/signup", async (req, res, next) => {
     });
   }
   const encPassword = await encrypt(password);
-  await User.create({ login, password: encPassword, friends:[] });
-  res.status(201).json({ message: "Вы зарегистрированы!" });
+  user = await User.create({ login, password: encPassword, friends: [] });
+  const token = await createToken(user);
+  res
+    .status(201)
+    .json({ jwt: token, user: { login: user.login, friends: user.friends } });
 });
 
 router.post("/signin", async (req, res, next) => {
@@ -38,6 +41,20 @@ router.post("/signin", async (req, res, next) => {
   res
     .status(200)
     .json({ jwt: token, user: { login: user.login, friends: user.friends } });
+});
+
+router.get("/ping", async (req, res, next) => {
+  let user;
+  try {
+    user = await getCurrentUser(req.headers);
+  } catch {
+    return next({ status: 401, errorMessage: "Токен не валиден" });
+  }
+  if (!user) {
+    return next({ status: 404, errorMessage: "Такого пользователя нет" });
+  }
+  const { login, requestedFriends, friends } = user;
+  res.status(200).json({ login, requestedFriends, friends });
 });
 
 module.exports = router;
