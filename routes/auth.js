@@ -16,11 +16,23 @@ router.post("/signup", async (req, res, next) => {
     });
   }
   const encPassword = await encrypt(password);
-  user = await User.create({ login, password: encPassword, friends: [] });
+  user = await User.create({
+    login,
+    password: encPassword,
+    avatar: null,
+    friends: [],
+    requestedFriends: [],
+  });
   const token = await createToken(user);
-  res
-    .status(201)
-    .json({ jwt: token, user: { login: user.login, friends: user.friends } });
+  res.status(201).json({
+    jwt: token,
+    user: {
+      login: user.login,
+      avatar: user.avatar,
+      friends: user.friends,
+      requestedFriends: user.requestedFriends,
+    },
+  });
 });
 
 router.post("/signin", async (req, res, next) => {
@@ -40,7 +52,15 @@ router.post("/signin", async (req, res, next) => {
   const token = await createToken(user);
   res
     .status(200)
-    .json({ jwt: token, user: { login: user.login, friends: user.friends } });
+    .json({
+      jwt: token,
+      user: {
+        login: user.login,
+        avatar: user.avatar,
+        friends: user.friends,
+        requestedFriends: user.requestedFriends,
+      },
+    });
 });
 
 router.get("/ping", async (req, res, next) => {
@@ -53,8 +73,8 @@ router.get("/ping", async (req, res, next) => {
   if (!user) {
     return next({ status: 404, errorMessage: "Такого пользователя нет" });
   }
-  const { login, requestedFriends, friends } = user;
-  res.status(200).json({ login, requestedFriends, friends });
+  const { login, requestedFriends, friends, avatar } = user;
+  res.status(200).json({ login, avatar, requestedFriends, friends });
 });
 
 module.exports = router;

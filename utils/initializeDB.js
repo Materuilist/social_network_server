@@ -7,6 +7,7 @@ module.exports = async function () {
   await User.create({
     login: "materuilist",
     password: await encrypt('borow123'),
+    avatar:null,
     friends:[],
     requestedFriends:[],
   });

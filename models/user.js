@@ -9,6 +9,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  avatar:{
+    type:String
+  },
   requestedFriends: [
     {
       type: mongoose.Types.ObjectId,

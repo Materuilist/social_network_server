@@ -6,6 +6,7 @@ const initializeDB = require("./utils/initializeDB");
 
 const authRouter = require("./routes/auth");
 const friendsRouter = require("./routes/friends");
+const userRouter = require("./routes/user");
 
 const app = express();
 
@@ -16,19 +17,18 @@ app.use("/", (req, res, next) => {
   next();
 });
 
-app.use("/", bodyParser.json());
+app.use("/", bodyParser.json({limit:'50mb'}));
 
 app.use("/auth", authRouter);
 app.use("/friends", friendsRouter);
+app.use("/user", userRouter);
 
 app.use("/", async (err, req, res, next) => {
-  await res
-    .status(err.status || 500)
-    .json({
-      message:
-        err.errorMessage ||
-        "Произошла ошибка на сервере... Извините за предоставленные неудобства!",
-    });
+  await res.status(err.status || 500).json({
+    message:
+      err.errorMessage ||
+      "Произошла ошибка на сервере... Извините за предоставленные неудобства!",
+  });
 });
 
 mongoose.connect(
@@ -39,7 +39,7 @@ mongoose.connect(
       return;
     }
 
-    //   await initializeDB();
+    // await initializeDB();
 
     app.listen(3200);
   }
