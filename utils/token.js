@@ -30,7 +30,10 @@ module.exports = {
         if (err) {
           return reject(err);
         }
-        const user = await User.findOne({ login: decodedUser.login });
+        const user = await User.findOne({ login: decodedUser.login })
+          .populate("friends", "login avatar")
+          .populate("requestedFriends", "login avatar")
+          .exec();
         resolve(user);
       });
     });

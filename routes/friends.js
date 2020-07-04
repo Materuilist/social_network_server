@@ -4,8 +4,24 @@ const User = require("../models/user");
 const { getCurrentUser } = require("../utils/token");
 const exists = require("../utils/exists");
 
+const ITEMS_PER_PAGE = 50;
+
+router.get("/search", async (req, res, next) => {
+  const users = await User.find({}, "login avatar", {
+    skip: ((req.query["page"] || 1) - 1) * ITEMS_PER_PAGE,
+    limit: ITEMS_PER_PAGE,
+  });
+
+  const nextPageExists =
+    (await User.countDocuments()) > (req.query["page"] || 1) * ITEMS_PER_PAGE;
+  return res.status(200).json({ users, nextPageExists });
+});
+
 // получение текущего пользователя
 router.use("/", async (req, res, next) => {
+  if (req.method === "OPTIONS") {
+    return next();
+  }
   let user;
   try {
     user = await getCurrentUser(req.headers);
